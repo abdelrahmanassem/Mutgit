@@ -24,6 +24,19 @@ func main() {
 		}
 		return
 	}
+
+ if command == "status" {
+		err := statusRepository()
+
+		if err != nil {
+			fmt.Println("Error:", err)
+			return
+		}
+
+		return
+	}
+
+
 	fmt.Println("Unknown command:", command)
 }
 func initRepository() (bool, error) {
