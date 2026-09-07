@@ -48,3 +48,45 @@ func initRepository() (bool, error) {
 	}
 	return true, nil
 }
+
+func statusRepository() error {
+	root, err := findRepositoryRoot()
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Mugit repository root:", root)
+
+	return nil
+}
+func findRepositoryRoot() (string, error) {
+	currentDir, err := os.Getwd()
+	if err != nil {
+		return "", fmt.Errorf("could not get current directory: %w", err)
+	}
+
+	current := currentDir
+
+	for {
+		mugitPath := filepath.Join(current, ".mugit")
+
+		_, err := os.Stat(mugitPath)
+
+		if err == nil {
+			return current, nil
+		}
+
+		if !os.IsNotExist(err) {
+			return "", fmt.Errorf("could not check %s: %w", mugitPath, err)
+		}
+
+		parent := filepath.Dir(current)
+
+		if parent == current {
+			return "", fmt.Errorf("not a Mugit repository")
+		}
+
+		current = parent
+	}
+}
