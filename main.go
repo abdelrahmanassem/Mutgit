@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/sha1"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -42,6 +43,21 @@ func main() {
 
 		return
 	}
+
+	if command == "hash-object" {
+	if len(os.Args) < 3 {
+		fmt.Println("Usage: mugit hash-object <file>")
+		return
+	}
+
+	err := hashObject(os.Args[2])
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
+	return
+}
 
 	fmt.Println("Unknown command:", command)
 }
@@ -334,3 +350,25 @@ func statusRepository() error {
 	return nil
 }
 
+func hashObject(filePath string) error {
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		return fmt.Errorf(
+			"could not read file %s: %w",
+			filePath,
+			err,
+		)
+	}
+
+	hash := sha1.Sum(data)
+
+	objectID := fmt.Sprintf("%x", hash)
+
+	fmt.Println("Object ID:", objectID)
+
+
+	fmt.Println("File bytes:", data)
+	fmt.Println("Number of bytes:", len(data))
+
+	return nil
+}
