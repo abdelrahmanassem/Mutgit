@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -454,18 +455,50 @@ func catFile(objectID string) error {
 		)
 	}
 
-
 	separator := bytes.IndexByte(data, 0)
 
 	if separator == -1 {
-		return fmt.Errorf("invalid object format")
+		return fmt.Errorf("invalid object format: missing separator")
 	}
 
+	header := string(data[:separator])
 	content := data[separator+1:]
 
-	fmt.Print(string(content))
+	parts := strings.SplitN(header, " ", 2)
 
-	//fmt.Print(string(data))
+	if len(parts) != 2 {
+		return fmt.Errorf("invalid object header")
+	}
+
+	objectType := parts[0]
+	sizeText := parts[1]
+
+	if objectType != "blob" {
+		return fmt.Errorf(
+			"unsupported object type: %s",
+			objectType,
+		)
+	}
+
+	expectedSize, err := strconv.Atoi(sizeText)
+	if err != nil {
+		return fmt.Errorf(
+			"invalid object size: %s",
+			sizeText,
+		)
+	}
+
+	actualSize := len(content)
+
+	if expectedSize != actualSize {
+		return fmt.Errorf(
+			"object size mismatch: expected %d, got %d",
+			expectedSize,
+			actualSize,
+		)
+	}
+
+	fmt.Print(string(content))
 
 	return nil
 }
