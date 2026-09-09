@@ -1,4 +1,4 @@
-# Mugit
+# Mugit 🐙
 
 Mugit is a **Git-like version control system written from scratch in Go**.
 
