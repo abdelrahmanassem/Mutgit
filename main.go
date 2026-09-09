@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"crypto/sha1"
 	"fmt"
 	"os"
@@ -51,6 +52,21 @@ func main() {
 	}
 
 	err := hashObject(os.Args[2])
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
+	return
+}
+
+if command == "cat-file" {
+	if len(os.Args) < 3 {
+		fmt.Println("Usage: mugit cat-file <objectID>")
+		return
+	}
+
+	err := catFile(os.Args[2])
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -360,15 +376,96 @@ func hashObject(filePath string) error {
 		)
 	}
 
-	hash := sha1.Sum(data)
+	header := fmt.Sprintf("blob %d\x00", len(data))
+
+	blobData := append([]byte(header), data...)
+
+	hash := sha1.Sum(blobData)
 
 	objectID := fmt.Sprintf("%x", hash)
 
 	fmt.Println("Object ID:", objectID)
+	root, err := findRepositoryRoot()
+	if err != nil {
+		return err
+	}
 
+	objectPath := filepath.Join(
+		root,
+		".mugit",
+		"objects",
+		objectID,
+	)
 
+	_, err = os.Stat(objectPath)
+
+	if err == nil {
+		fmt.Println(objectID)
+		return nil
+	}
+
+	if !os.IsNotExist(err) {
+		return fmt.Errorf(
+			"could not check object: %w",
+			err,
+		)
+	}
+
+	err = os.WriteFile(
+		objectPath,
+		blobData,
+		0644,
+	)
+
+	if err != nil {
+		return fmt.Errorf(
+			"could not store object: %w",
+			err,
+		)
+	}
+
+	fmt.Println(objectID)
 	fmt.Println("File bytes:", data)
 	fmt.Println("Number of bytes:", len(data))
+
+	return nil
+}
+
+
+func catFile(objectID string) error {
+	root, err := findRepositoryRoot()
+	if err != nil {
+		return err
+	}
+
+	objectPath := filepath.Join(
+		root,
+		".mugit",
+		"objects",
+		objectID,
+	)
+
+	data, err := os.ReadFile(objectPath)
+	if err != nil {
+		return fmt.Errorf(
+			"could not read object %s: %w",
+			objectID,
+			err,
+		)
+	}
+
+
+	separator := bytes.IndexByte(data, 0)
+
+	if separator == -1 {
+		return fmt.Errorf("invalid object format")
+	}
+
+	content := data[separator+1:]
+
+	fmt.Print(string(content))
+
+	//fmt.Print(string(data))
 
 	return nil
 }
