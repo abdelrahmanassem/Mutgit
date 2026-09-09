@@ -298,33 +298,7 @@ The project intentionally uses Go to practice:
 * Systems programming
 * Repository and storage design
 
----
 
-## Learning Approach
-
-Mugit is being built incrementally rather than copied from an existing Git implementation.
-
-Each feature follows a development cycle:
-
-```text
-Understand the concept
-        ↓
-Design the behavior
-        ↓
-Implement
-        ↓
-Test
-        ↓
-Inspect failures
-        ↓
-Refactor
-        ↓
-Move to the next subsystem
-```
-
-The goal is not to reproduce every feature of Git, but to develop a deep understanding of the engineering concepts that make a version control system possible.
-
----
 
 ## Project Status
 
